@@ -31,11 +31,13 @@ class Memory(Store):
 
         self.__namespace = {}
         self.__prefix = {}
+        self.__len = None
 
     def add(self, (subject, predicate, object), context, quoted=False):
         """\
         Add a triple to the store of triples.
         """
+        self.__len = None
         # add dictionary entries for spo[s][p][p] = 1 and pos[p][o][s]
         # = 1, creating the nested dictionaries where they do not yet
         # exits.
@@ -73,6 +75,7 @@ class Memory(Store):
         p[predicate] = 1
 
     def remove(self, (subject, predicate, object), context=None):
+        self.__len = None
         for (subject, predicate, object), c in self.triples(
                 (subject, predicate, object)):
             del self.__spo[subject][predicate][object]
@@ -142,10 +145,12 @@ class Memory(Store):
 
     def __len__(self, context=None):
         #@@ optimize
-        i = 0
-        for triple in self.triples((None, None, None)):
-            i += 1
-        return i
+        if self.__len is None:
+            i = 0
+            for triple in self.triples((None, None, None)):
+                i += 1
+            self.__len = i
+        return self.__len
 
     def bind(self, prefix, namespace):
         self.__prefix[namespace] = prefix
